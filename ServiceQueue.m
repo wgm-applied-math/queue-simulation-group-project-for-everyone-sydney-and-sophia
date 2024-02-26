@@ -13,6 +13,7 @@ classdef ServiceQueue < handle
         % them to be served is exponentially distributed with a rate
         % parameter of DepartureRate.
         DepartureRate = 1/1.5;
+        DepartureRateHelper = 1;
 
         % NumServers - How many identical serving stations are available.
         NumServers = 1;
@@ -38,6 +39,7 @@ classdef ServiceQueue < handle
         % station begins serving a customer.  The resulting random number
         % is the time until service is complete.
         ServiceDist;
+        ServiceDistHelper;
 
         % ServerAvailable - Row vector of boolean values, initial all true.
         % ServerAvailable(j) is set to false when serving station j begins
@@ -108,6 +110,11 @@ classdef ServiceQueue < handle
                 makedist("Exponential", mu=1/obj.ArrivalRate);
             obj.ServiceDist = ...
                 makedist("Exponential", mu=1/obj.DepartureRate);
+
+             obj.ServiceDistHelper = ...
+                makedist("Exponential", mu=1/obj.DepartureRateHelper);
+
+
             obj.ServerAvailable = repelem(true, obj.NumServers);
             obj.Servers = cell([1, obj.NumServers]);
             obj.Events = PriorityQueue({}, @(x) x.Time);
@@ -241,7 +248,18 @@ classdef ServiceQueue < handle
 
             % Sample ServiceDist to get the time it will take to serve this
             % customer.
-            service_time = random(obj.ServiceDist);
+            %service_time = random(obj.ServiceDist);
+
+            NWaiting = length(obj.Waiting);
+            NInService = obj.NumServers - sum(obj.ServerAvailable);
+            NInSystem = NWaiting + NInService;
+
+        if      NInSystem > 1
+
+                service_time = random(obj.ServiceDistHelper);
+        else
+                service_time = random(obj.ServiceDist);
+        end
 
             % Schedule a Departure event so that after the service time,
             % the customer at station j departs.
@@ -298,6 +316,7 @@ classdef ServiceQueue < handle
 
             NWaiting = length(obj.Waiting);
             NInService = obj.NumServers - sum(obj.ServerAvailable);
+            NInSystem = NWaiting + NInService;
             NServed = length(obj.Served);
 
             % MATLAB-ism: This is how to add a row to the end of a table.
