@@ -25,7 +25,7 @@ NInSystemSamples = cell([1, n_samples]);
 % the log interval should be long enough for several arrival and departure
 % events happen.
 for sample_num = 1:n_samples
-    q = ServiceQueue(DepartureRate = (1/1.5), DepartureRateHelper = 1, LogInterval=10);
+    q = ServiceQueue(DepartureRate = (1/1.5), DepartureRateHelper = 1, LogInterval=100);
     q.schedule_event(Arrival(1, Customer(1)));
     run_until(q, max_time);
     % Pull out samples of the number of customers in the queue system. Each
@@ -70,23 +70,30 @@ hold on;
 rho1 = q.ArrivalRate / q.DepartureRate;
 rho2 = q.ArrivalRate / q.DepartureRateHelper;
 
-P0 = 1 - rho;
+P0 = 1 - rho1;
+P02 = 1 / (1 + (rho1) * (1 / (1 - (rho2))));
 nMax = 10;
 ns = 0:nMax;
+wn = 0:nMax;
 P = zeros([1, nMax+1]);
+P2 = zeros([1, nMax+1]);
 P(1) = P0;
+P2(1) = P02;
 
-for n = 1
+
+for n = 1:nMax
         P(1+n) = P0 * rho1^n;
 end
 
+%plot red dots for WITHOUT ASSISTANT
 plot(ns, P, 'o', MarkerEdgeColor='k', MarkerFaceColor='r');
 
-for n > 1
- P(1+n) = P0 * rho1 *rho2^(n-1);
+for n = 1:nMax
+ P2(1+n) = P0 * rho1 * rho2^(n-1);
 end 
 
-plot(ns, P, 'o', MarkerEdgeColor='k', MarkerFaceColor='b');
+%plot blue dots for WITH ASSISTANT
+plot(wn, P2, 'o', MarkerEdgeColor='k', MarkerFaceColor='b');
 
 
 % This sets some paper-related properties of the figure so that you can

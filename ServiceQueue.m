@@ -128,7 +128,7 @@ classdef ServiceQueue < handle
                     {'double', 'int64', 'int64', 'int64'});
 
             % The first event is to record the state at time 0 to the log.
-            schedule_event(obj, RecordToLog(0));
+            schedule_event(obj, RecordToLog(obj.LogInterval));
         end
 
         function obj = run_until(obj, MaxTime)
