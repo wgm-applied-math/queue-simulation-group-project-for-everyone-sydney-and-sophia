@@ -47,11 +47,11 @@ for sample_num = 1:n_samples
             q.Served');
     TimeWaitingSamples{sample_num} = ...
         cellfun( ... 
-            @(c) c.DepartureTime - c.ArrivalTime, ... 
+            @(c) c.BeginServiceTime - c.ArrivalTime, ... 
             q.Served');
     TimeBeingServedSamples{sample_num} = ...
         cellfun( ... 
-            @(c) c.DepartureTime - c.ArrivalTime, ... 
+            @(c) c.DepartureTime - c.BeginServiceTime, ... 
             q.Served');
 end
 
@@ -123,7 +123,7 @@ fig = figure();
 t = tiledlayout(fig,1,1);
 ax = nexttile(t);
 hold(ax, "on");
-h = histogram(ax, TimeInSystem, Normalization = "probability"); 
+h = histogram(ax, TimeInSystem, Normalization = "probability", BinWidth = 2); 
 title(ax, "Time in system");
 xlabel(ax, "Time (minutes)");
 ylabel(ax, "Probability");
@@ -136,7 +136,7 @@ fig = figure();
 t = tiledlayout(fig,1,1);
 ax = nexttile(t);
 hold(ax, "on");
-h = histogram(ax, TimeWaiting, Normalization = "probability"); 
+h = histogram(ax, TimeWaiting, Normalization = "probability", BinWidth = 2); 
 title(ax, "Time waiting");
 xlabel(ax, "Time (minutes)");
 ylabel(ax, "Probability");
@@ -149,7 +149,7 @@ fig = figure();
 t = tiledlayout(fig,1,1);
 ax = nexttile(t);
 hold(ax, "on");
-h = histogram(ax, TimeBeingServed, Normalization = "probability"); 
+h = histogram(ax, TimeBeingServed, Normalization = "probability", BinWidth = 1); 
 title(ax, "Time being served");
 xlabel(ax, "Time (minutes)");
 ylabel(ax, "Probability");
