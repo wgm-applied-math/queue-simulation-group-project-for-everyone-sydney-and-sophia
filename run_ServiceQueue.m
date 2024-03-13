@@ -18,6 +18,14 @@ max_time = 1000;
 % Record how many customers are in the system at the end of each sample.
 NInSystemSamples = cell([1, n_samples]);
 
+%Record time customers spend in the system
+TimeInSystemSamples = cell([1, n_samples]);
+
+%Record time customers spend in the system
+TimeInSystemSamples = cell([1, n_samples]);
+TimeWaitingSamples = cell([1, n_samples]);
+TimeBeingServedSamples = cell([1, n_samples]);
+
 %% Run the queue simulation
 
 % The statistics seem to come out a little weird if the log interval is too
@@ -33,12 +41,27 @@ for sample_num = 1:n_samples
     % counts, because tables like q.Log allow easy extraction of whole
     % columns like this.
     NInSystemSamples{sample_num} = q.Log.NWaiting + q.Log.NInService;
+    TimeInSystemSamples{sample_num} = ...
+        cellfun( ... 
+            @(c) c.DepartureTime - c.ArrivalTime, ... 
+            q.Served');
+    TimeWaitingSamples{sample_num} = ...
+        cellfun( ... 
+            @(c) c.DepartureTime - c.ArrivalTime, ... 
+            q.Served');
+    TimeBeingServedSamples{sample_num} = ...
+        cellfun( ... 
+            @(c) c.DepartureTime - c.ArrivalTime, ... 
+            q.Served');
 end
 
 % Join all the samples. "vertcat" is short for "vertical concatenate",
 % meaning it joins a bunch of arrays vertically, which in this case results
 % in one tall column.
 NInSystem = vertcat(NInSystemSamples{:});
+TimeInSystem = vertcat(TimeInSystemSamples{:});
+TimeWaiting = vertcat(TimeWaitingSamples{:});
+TimeBeingServed = vertcat(TimeBeingServedSamples{:});
 
 % MATLAB-ism: When you pull multiple items from a cell array, the result is
 % a "comma-separated list" rather than some kind of array.  Thus, the above
@@ -94,6 +117,46 @@ end
 
 %plot blue dots for WITH ASSISTANT
 plot(wn, P2, 'o', MarkerEdgeColor='k', MarkerFaceColor='b');
+
+%% Histogram of the time spent in the system
+fig = figure();
+t = tiledlayout(fig,1,1);
+ax = nexttile(t);
+hold(ax, "on");
+h = histogram(ax, TimeInSystem, Normalization = "probability"); 
+title(ax, "Time in system");
+xlabel(ax, "Time (minutes)");
+ylabel(ax, "Probability");
+exportgraphics(fig, ... 
+    sprintf("Time in system histogram with DepartureRateHelper=%s.pdf", ...
+    string(q.DepartureRateHelper)));
+
+%% Histogram of the time customers spend waiting in queue
+fig = figure();
+t = tiledlayout(fig,1,1);
+ax = nexttile(t);
+hold(ax, "on");
+h = histogram(ax, TimeWaiting, Normalization = "probability"); 
+title(ax, "Time waiting");
+xlabel(ax, "Time (minutes)");
+ylabel(ax, "Probability");
+exportgraphics(fig, ... 
+    sprintf("Time waiting histogram with DepartureRateHelper=%s.pdf", ...
+    string(q.DepartureRateHelper)));
+
+%% Histogram of the time customers spend being served
+fig = figure();
+t = tiledlayout(fig,1,1);
+ax = nexttile(t);
+hold(ax, "on");
+h = histogram(ax, TimeBeingServed, Normalization = "probability"); 
+title(ax, "Time being served");
+xlabel(ax, "Time (minutes)");
+ylabel(ax, "Probability");
+exportgraphics(fig, ... 
+    sprintf("Time being served histogram with DepartureRateHelper=%s.pdf", ...
+    string(q.DepartureRateHelper)));
+
 
 
 % This sets some paper-related properties of the figure so that you can
